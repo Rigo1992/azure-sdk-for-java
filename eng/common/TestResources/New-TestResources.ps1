@@ -827,6 +827,19 @@ try {
                                                                 -templateFile $templateFile `
                                                                 -environmentVariables $EnvironmentVariables
 
+        $storageAccounts = Retry { Get-AzResource -ResourceGroupName $ResourceGroupName -ResourceType "Microsoft.Storage/storageAccounts" }
+        if ($storageAccounts) {
+            $clientIp = Retry { Invoke-RestMethod -Uri 'https://myip.dnsomatic.com/' }  # OpenDNS owned ip site. Some throttling will occur if called quickly.
+        }
+        foreach ($account in $storageAccounts) {
+            $rules = Get-AzStorageAccountNetworkRuleSet -ResourceGroupName $ResourceGroupName -AccountName $account.Name
+            if ($rules -and $rules.DefaultAction -eq "Allow") {
+                Write-Host "Restricting network rules in storage account '$($account.Name)' to deny access except from the current client's IP"
+                Retry { Update-AzStorageAccountNetworkRuleSet -ResourceGroupName $ResourceGroupName -Name $account.Name -DefaultAction Deny }
+                Retry { Add-AzStorageAccountNetworkRule -ResourceGroupName $ResourceGroupName -Name $account.Name -IPAddressOrRange $clientIp }
+            }
+        }
+
         $postDeploymentScript = $templateFile.originalFilePath | Split-Path | Join-Path -ChildPath "$ResourceType-resources-post.ps1"
         if (Test-Path $postDeploymentScript) {
             Log "Invoking post-deployment script '$postDeploymentScript'"
