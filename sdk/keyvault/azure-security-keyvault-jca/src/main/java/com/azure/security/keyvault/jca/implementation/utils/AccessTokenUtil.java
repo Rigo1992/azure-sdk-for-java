@@ -219,7 +219,7 @@ public final class AccessTokenUtil {
 
     public static String getLoginUri(URI resourceUri, boolean disableChallengeResourceVerification) {
         LOGGER.entering("AccessTokenUtil", "getLoginUri", resourceUri);
-        LOGGER.log(INFO, "Getting login URI for Kay Vault: {0}", resourceUri);
+        LOGGER.log(INFO, "Getting login URI for Key Vault: {0}", resourceUri.toString());
 
         HttpResponse response = HttpUtil
             .postWithResponse(resourceUri.toString(), null, "", "application/x-www-form-urlencoded");

@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 
 /**
@@ -114,6 +115,9 @@ public final class HttpUtil {
             }
 
             httpPost.setEntity(new StringEntity(body, ContentType.create(contentType)));
+
+            LOGGER.log(INFO, "Executing post request: {0}", httpPost);
+
             result = client.execute(httpPost, createResponseHandlerForAuthChallenge());
         } catch (IOException ioe) {
             LOGGER.log(WARNING, "Unable to finish the http post request.", ioe);
@@ -125,11 +129,18 @@ public final class HttpUtil {
     private static ResponseHandler<String> createResponseHandler() {
         return (HttpResponse response) -> {
             int status = response.getStatusLine().getStatusCode();
+
+            LOGGER.log(INFO, "Received response with status code: ", status);
+
             String result = null;
+
             if (status >= 200 && status < 300) {
                 HttpEntity entity = response.getEntity();
                 result = entity != null ? EntityUtils.toString(entity) : null;
             }
+
+            LOGGER.log(INFO, "And body: ", result);
+
             return result;
         };
     }
@@ -137,6 +148,8 @@ public final class HttpUtil {
     private static ResponseHandler<HttpResponse> createResponseHandlerForAuthChallenge() {
         return (HttpResponse response) -> {
             int status = response.getStatusLine().getStatusCode();
+
+            LOGGER.log(INFO, "Received response: {0}", response);
 
             return status == 401 ? response : null;
         };

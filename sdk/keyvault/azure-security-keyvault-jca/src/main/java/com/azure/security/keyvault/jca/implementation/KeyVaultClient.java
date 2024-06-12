@@ -197,9 +197,10 @@ public class KeyVaultClient {
                 managedIdentity = URLEncoder.encode(managedIdentity, "UTF-8");
             }
 
+            String aadAuthenticationUri =
+                getLoginUri(new URI(keyVaultUri), disableChallengeResourceVerification);
+
             if (tenantId != null && clientId != null && clientSecret != null) {
-                String aadAuthenticationUri =
-                    getLoginUri(new URI(resource), disableChallengeResourceVerification);
                 accessToken =
                     AccessTokenUtil.getAccessToken(resource, aadAuthenticationUri, tenantId, clientId, clientSecret);
             } else {
